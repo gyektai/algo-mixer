@@ -2,16 +2,22 @@ from pyteal import *
 import os
 
 def approval_program():
-    # Mode.Application specifies that this is a smart contract
-    # edit this one
+
+    # don't need any real fancy initialization
     handle_creation = Seq([
         Return(Int(1))
     ])
 
-    totalAmountRec = ScratchVar(TealType.uint64)
+    # initialize scratch variables
+    # total amounts to make sure that the contract
+    # receives at least as much as is sent out + fees
+    totalAmountRec = ScratchVar(TealType.uint64) 
     totalAmountSent = ScratchVar(TealType.uint64)
-    i = ScratchVar(TealType.uint64)
+    # i for the for loop
+    i = ScratchVar(TealType.uint64) 
 
+    # for each arg send a transaction of that amount
+    # to the corresponding account in the accounts array
     send_inner_txns = Seq(
         For(i.store(Int(0)), i.load() < Txn.application_args.length(), i.store(i.load() + Int(1))).Do(
             Seq(
@@ -26,6 +32,9 @@ def approval_program():
         Int(1)
     )
 
+    # make sure that the contract receives at least as much as the 
+    # amount it sends out + fees, and that each transaction sends
+    # the algos to the contract's address
     check_valid = Seq(
         totalAmountRec.store(Int(0)),
         totalAmountSent.store(Int(0)),
@@ -42,25 +51,25 @@ def approval_program():
     
     handle_noop = And(
         check_valid,
-        Txn.accounts.length() == Txn.application_args.length(),
-        Txn.accounts.length() <= Int(16),
+        Txn.accounts.length() == Txn.application_args.length(), # make sure each amount has an account to send to
+        Txn.accounts.length() <= Int(16), # contracts can send max 16 innerTxns
         send_inner_txns
     )
-    # need other params for payment txn creation?
 
-
+    # doesn't need anyone to opt in
     handle_optin = Return(Int(0))
 
+    # only the creator can closeout the contract
     handle_closeout = Return(Txn.sender() == Global.creator_address())
-        # Return(Txn.sender() == 'MY REAL ADDRESS')
 
-    handle_updateapp = Return(Txn.sender() == Global.creator_address())
-        # Return(Txn.sender() == 'MY REAL ADDRESS')
+    # nobody can update the contract
+    handle_updateapp = Return(Int(0))
 
+    # only creator can delete the contract
     handle_deleteapp = Return(Txn.sender() == Global.creator_address())
 
 
-
+    # handle the types of application calls
     program = Cond(
         [Txn.application_id() == Int(0), handle_creation],
         [Txn.on_completion() == OnComplete.OptIn, handle_optin],
@@ -71,14 +80,16 @@ def approval_program():
     )
     return compileTeal(program, mode=Mode.Application, version=5)
 
+# let clear state happen
 def clear_state_program():
     program = Return(Int(1))
     return compileTeal(program, mode=Mode.Application, version=5)
 
+# compile to teal and write to file
 if __name__ == "__main__":
     path = os.path.dirname(os.path.abspath(__file__))
 
-    with open(os.path.join(path,"approvalLoops.teal"), "w") as f:
+    with open(os.path.join(path,"approval.teal"), "w") as f:
         f.write(approval_program())
 
     with open(os.path.join(path,"clear.teal"), "w") as f:

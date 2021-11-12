@@ -126,9 +126,7 @@ global CreatorAddress
 ==
 return
 main_l20:
-txn Sender
-global CreatorAddress
-==
+int 0
 return
 main_l21:
 txn Sender
