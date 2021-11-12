@@ -1,0 +1,143 @@
+#pragma version 5
+txn ApplicationID
+int 0
+==
+bnz main_l23
+txn OnCompletion
+int OptIn
+==
+bnz main_l22
+txn OnCompletion
+int CloseOut
+==
+bnz main_l21
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l20
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l19
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+int 0
+store 0
+int 0
+store 1
+int 0
+store 2
+main_l8:
+load 2
+global GroupSize
+int 1
+-
+<
+bnz main_l16
+int 0
+store 2
+main_l10:
+load 2
+txn NumAppArgs
+<
+bnz main_l15
+load 0
+load 1
+global MinTxnFee
+txn NumAppArgs
+*
++
+>=
+txn NumAccounts
+txn NumAppArgs
+==
+&&
+txn NumAccounts
+int 16
+<=
+&&
+int 0
+store 2
+main_l12:
+load 2
+txn NumAppArgs
+<
+bnz main_l14
+int 1
+&&
+return
+main_l14:
+itxn_begin
+int pay
+itxn_field TypeEnum
+load 2
+int 1
++
+txnas Accounts
+itxn_field Receiver
+load 2
+txnas ApplicationArgs
+btoi
+itxn_field Amount
+itxn_submit
+load 2
+int 1
++
+store 2
+b main_l12
+main_l15:
+load 1
+load 2
+txnas ApplicationArgs
+btoi
++
+store 1
+load 2
+int 1
++
+store 2
+b main_l10
+main_l16:
+load 0
+load 2
+gtxns Amount
++
+store 0
+load 2
+gtxns Receiver
+global CurrentApplicationAddress
+!=
+bnz main_l18
+load 2
+int 1
++
+store 2
+b main_l8
+main_l18:
+int 0
+return
+main_l19:
+txn Sender
+global CreatorAddress
+==
+return
+main_l20:
+txn Sender
+global CreatorAddress
+==
+return
+main_l21:
+txn Sender
+global CreatorAddress
+==
+return
+main_l22:
+int 0
+return
+main_l23:
+int 1
+return
