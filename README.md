@@ -1,5 +1,5 @@
 # algo-mixer
-Mixer for the algorand blockchain.
+The first mixer for the algorand blockchain.
 
 How to use:
 
@@ -9,4 +9,4 @@ Group the transactions in an array where the payments to the smart contract all 
 
 The order is very important here, as in the first account of the accounts array will get the amount that comes first in the args array.
 
-Accounts can send to multiple accounts, and transactions can be for varying amounts. For the best anonymity after sending, the output amounts should be similar, and as many addresses should take part.
+Accounts can send to multiple accounts, and transactions can be for varying amounts. For the best anonymity after sending, the output amounts should be similar, and as many addresses should take part. 
